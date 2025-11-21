@@ -1,0 +1,13 @@
+{
+  "name": "smart_stoichiometry",
+  "version": "1.0.0",
+  "description": "Ein minimaler, auf Vercel deploybarer Prototyp für AI-gestützte Stoichiometrie-Analysen.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/run-tests.js"
+  },
+  "keywords": ["chemistry", "stoichiometry", "vercel", "pubchem"],
+  "author": "",
+  "license": "MIT"
+}

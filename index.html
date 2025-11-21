@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Stoichiometry</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Smart Stoichiometry</h1>
+      <p>AI-gestützte Extraktion und Berechnung chemischer Reaktionen</p>
+    </header>
+    <main>
+      <section class="card">
+        <h2>Eingabe</h2>
+        <p>Beschreibe deine Reaktion in natürlicher Sprache. Beispiele: "5 g Natriumchlorid in 20 mL Wasser, 1 mmol Essigsäure".</p>
+        <form id="stoich-form">
+          <label for="stoich-input" style="display:block; font-weight:600; margin-bottom:8px;">Chemische Beschreibung</label>
+          <textarea id="stoich-input" name="stoich-input" placeholder="z. B. 5 g NaCl, 1 mmol AcOH, 10 mL Wasser" required></textarea>
+          <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+            <button id="stoich-submit" type="submit">Analyse starten</button>
+          </div>
+        </form>
+      </section>
+      <section class="results" id="stoich-output" aria-live="polite"></section>
+    </main>
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
