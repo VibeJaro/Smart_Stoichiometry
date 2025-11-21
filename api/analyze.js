@@ -1,6 +1,7 @@
 const { parseInput } = require('../lib/parser');
 const { annotateWithPubChem } = require('../lib/pubchem');
 const { computeStoichiometry } = require('../lib/stoichiometry');
+const { extractChemicalsWithLLM } = require('../lib/llm');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -12,8 +13,10 @@ module.exports = async (req, res) => {
 
   try {
     const body = await readJsonBody(req);
-    const parsed = parseInput(body.text || '');
-    const enriched = annotateWithPubChem(parsed);
+    const fallbackParsed = parseInput(body.text || '');
+    const llmParsed = await extractChemicalsWithLLM(body.text || '', { fallbackParsed });
+    const parsed = llmParsed.length ? llmParsed : fallbackParsed;
+    const enriched = await annotateWithPubChem(parsed, { fetchFn: global.fetch });
     const stoich = computeStoichiometry(enriched);
 
     res.statusCode = 200;

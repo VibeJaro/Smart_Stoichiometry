@@ -1,28 +1,33 @@
 const fs = require('fs');
 const path = require('path');
 
-// Minimal test harness
+// Minimal async-aware test harness
 const results = [];
+const pending = [];
 
 global.describe = (name, fn) => {
   fn();
 };
 
 global.it = (name, fn) => {
-  try {
-    fn();
-    results.push({ name, status: 'passed' });
-  } catch (error) {
-    results.push({ name, status: 'failed', error });
-  }
+  const run = () => Promise.resolve().then(fn);
+  const promise = run()
+    .then(() => {
+      results.push({ name, status: 'passed' });
+    })
+    .catch((error) => {
+      results.push({ name, status: 'failed', error });
+    });
+  pending.push(promise);
 };
 
-function run() {
+async function run() {
   const testDir = __dirname;
   const files = fs.readdirSync(testDir).filter((file) => file.endsWith('.test.js'));
   files.forEach((file) => {
     require(path.join(testDir, file));
   });
+  await Promise.allSettled(pending);
   const failed = results.filter((r) => r.status === 'failed');
   results.forEach((r) => {
     const prefix = r.status === 'passed' ? '✅' : '❌';
@@ -36,4 +41,7 @@ function run() {
   }
 }
 
-run();
+run().catch((error) => {
+  console.error('Test harness failed', error);
+  process.exit(1);
+});

@@ -37,6 +37,10 @@ npm test
 
 Getestet werden Parser, PubChem-Zuordnung und Stoichiometrie-Berechnung.
 
+## PubChem- und LLM-Anbindung
+- Die Serverless-Function ruft PubChem (PUG REST) auf, um Molmassen, CAS-Nummern und SMILES nachzuladen. Schlägt der Aufruf fehl, wird auf den lokalen Fallback-Datensatz zurückgegriffen.
+- Für die LLM-Extraktion kann die Umgebungsvariable `OPENAI_API_KEY` gesetzt werden. Ohne API-Key nutzt die Anwendung weiterhin den heuristischen Parser.
+
 ## Deployment-Hinweis
 - Die statische UI kann direkt von Vercel ausgeliefert werden.
 - Die Serverless-Function unter `api/analyze.js` entspricht der Vercel-Konvention und kapselt Logik sowie (später) mögliche Aufrufe an GPT/PubChem.
