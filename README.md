@@ -1,85 +1,47 @@
-# Smart_Stoichiometry
+# Smart Stoichiometry
 
-Dieses Projekt ist ein AI-gestütztes Tool zur automatischen Extraktion, Interpretation und Berechnung chemischer Reaktionen.  
-Der User gibt eine chemische Versuchsbeschreibung in **natürlicher Sprache** in ein einzelnes Textfeld ein.  
-Das Tool identifiziert automatisch alle Chemikalien, Mengen und Reaktionsbeziehungen und erstellt ein vollständiges, strukturiertes Stoichiometrie-Set.
+Ein schlanker, vollständig statischer Prototyp für die AI-gestützte Extraktion, Validierung und Berechnung chemischer Reaktionen. Die Anwendung läuft als statische Seite mit einer einzelnen Eingabe und nutzt eine Vercel-Serverless-Function (`/api/analyze`) für Parsing, PubChem-Mocking und Stoichiometrie-Berechnungen. Externe API-Keys werden nicht im Browser benötigt.
 
-Das Projekt wird (durch OpenAI Codex) automatisch generiert und soll eine moderne, leicht deploybare Architektur verwenden, die vollständig auf **Vercel** laufen kann.
+## Features
+- **Ein Eingabefeld** für Freitext, CAS-Nummern, SMILES oder chemische Namen.
+- **Parser** erkennt Mengenangaben, Rollenhinweise und CAS-Nummern aus unstrukturiertem Text.
+- **PubChem-Mock** ordnet Reagenzien anhand eines lokalen Datensatzes zu und weist Molmassen zu.
+- **Stoichiometrie-Modul** berechnet Stoffmengen, Äquivalente, limiting reagent und eine einfache theoretische Ausbeute.
+- **Klares Feedback** bei Mehrdeutigkeiten oder fehlenden Treffern.
 
----
+## Projektstruktur
+```
+├─ api/               # Vercel-Serverless-Function (POST /api/analyze)
+├─ lib/               # Kernlogik: Parser, PubChem-Mock, Stoichiometrie
+├─ tests/             # Unit-Tests mit minimalem Node-Test-Harness
+├─ index.html         # Statische UI mit einem Textfeld
+├─ app.js / styles.css# UI-Logik und Gestaltung
+├─ server.js          # Lokaler Dev-Server (auch als Fallback für einfache Deployments)
+└─ package.json
+```
 
-## Kernfunktionen
+## Lokale Nutzung
+1. Stelle sicher, dass Node.js installiert ist.
+2. Starte den integrierten Dev-Server:
+   ```
+   npm start
+   ```
+3. Öffne `http://localhost:3000` und sende deine Beschreibung ab. Die UI ruft automatisch `/api/analyze` auf.
 
-### 1. Natürliche Spracheingabe
-Ein einziges Input-Feld verarbeitet beliebige chemische Angaben:
-- Freitext  
-- CAS-Nummern (z. B. „64-19-7“)  
-- SMILES (z. B. „CC(=O)O“)  
-- IUPAC-Namen  
-- Synonyme („Essigsäure“, „AcOH“, „Ethansäure“)  
-- Mengenangaben in g, mg, mmol, mL, % usw.
+## Tests
+Die Kernlogik wird über einen leichten Node-Test-Harness geprüft.
 
-Keine separaten Felder, keine formale Struktur notwendig.  
-Der User kann *alles* einfach reinschreiben.
+```
+npm test
+```
 
-### 2. Chemie-Erkennung & PubChem-Validierung
-Ein KI-Agent (GPT-5) analysiert:
-- Reagenzien
-- Mengen
-- Rollen (Edukten, Reaktionsmedium, ggf. Katalysator)
-- Reaktionsrichtung
-- eindeutige Identifikation über PubChem
+Getestet werden Parser, PubChem-Zuordnung und Stoichiometrie-Berechnung.
 
-Mehrdeutigkeit wird erkannt → UI liefert Feedback („Butanol ist nicht eindeutig, bitte spezifizieren“).
+## PubChem- und LLM-Anbindung
+- Die Serverless-Function ruft PubChem (PUG REST) auf, um Molmassen, CAS-Nummern und SMILES nachzuladen. Schlägt der Aufruf fehl, wird auf den lokalen Fallback-Datensatz zurückgegriffen.
+- Für die LLM-Extraktion kann die Umgebungsvariable `OPENAI_API_KEY` gesetzt werden. Ohne API-Key nutzt die Anwendung weiterhin den heuristischen Parser.
 
-### 3. Stoichiometrie-Modul
-Das Tool generiert eine vollständige Reaktionsstruktur:
-- Molmassen
-- Stoffmengen
-- Äquivalente
-- limiting reagent
-- theoretische Ausbeute
-- optionale automatische Reaktionsgleichung
-
-Alle Daten werden strukturiert als JSON gespeichert und zusätzlich in einer nutzbaren UI angezeigt.
-
-### 4. Feedback-System
-Wenn Informationen fehlen oder unklar sind:
-- Der User bekommt klare, verständliche Rückmeldungen
-- Fehlende Angaben werden abgefragt
-- Fehler werden nicht stillschweigend ignoriert
-
-### 5. Architekturrahmen
-Codex darf Architektur und Framework wählen, aber:
-
-- Das Projekt **muss vollständig auf Vercel deploybar sein**
-- Serverless Functions sind erlaubt
-- Der OpenAI-Key darf **nicht** im Browser liegen
-- Die Anwendung muss komplett clientseitig bedienbar sein (UI)
-- Backend ausschließlich als Vercel-Functions
-
----
-
-## Technische Anforderungen
-
-- Programmiersprache: frei wählbar (JS/TS/Python)
-- Framework: frei wählbar (vanilla, React, Next.js, Astro, Svelte)
-- Deployment: Vercel
-- Chemie-API: PubChem (REST)
-- AI-Modell (nach Fertigstellung): GPT-5.1  
-- AI-Modell (für die **Entwicklung**): Codex (OpenAI)
-
----
-
-## Ziel dieses Repos
-Dieses Repository dient als Basis, damit OpenAI Codex autonom:
-
-1. die vollständige Architektur entscheidet  
-2. alle Module implementiert  
-3. die userfreundliche, schlichte aber optisch angenehmne UI baut  
-4. die Vercel-Functions implementiert  
-5. die PubChem-Anbindung integriert  
-6. das Stoichiometrie-System entwickelt  
-7. robuste Fehlerbehandlung implementiert  
-
-
+## Deployment-Hinweis
+- Die statische UI kann direkt von Vercel ausgeliefert werden.
+- Die Serverless-Function unter `api/analyze.js` entspricht der Vercel-Konvention und kapselt Logik sowie (später) mögliche Aufrufe an GPT/PubChem.
+- Der OpenAI-Key verbleibt ausschließlich serverseitig, falls eine echte Integration ergänzt wird.
