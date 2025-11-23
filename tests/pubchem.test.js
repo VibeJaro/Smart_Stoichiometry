@@ -18,9 +18,26 @@ describe('resolveChemical', () => {
           }),
         };
       }
+      if (url.includes('/xrefs/RN')) {
+        return {
+          ok: true,
+          json: async () => ({ InformationList: { Information: [{ RN: ['7732-18-5'] }] } }),
+        };
+      }
       return {
         ok: true,
-        json: async () => ({ InformationList: { Information: [{ RN: ['7732-18-5'] }] } }),
+        json: async () => ({
+          PC_Compounds: [
+            {
+              props: [
+                {
+                  urn: { label: 'Density' },
+                  value: { fval: 1.0 },
+                },
+              ],
+            },
+          ],
+        }),
       };
     };
     const result = await resolveChemical('water', { fetchFn: fakeFetch });
@@ -52,13 +69,30 @@ describe('annotateWithPubChem', () => {
           json: async () => ({
             PropertyTable: {
               Properties: [
-                { MolecularWeight: 46.07, IUPACName: 'ethanol', IsomericSMILES: 'CCO', Density: '0.789' },
+                { MolecularWeight: 46.07, IUPACName: 'ethanol', IsomericSMILES: 'CCO' },
               ],
             },
           }),
         };
       }
-      return { ok: true, json: async () => ({ InformationList: { Information: [{ RN: ['64-17-5'] }] } }) };
+      if (url.includes('/xrefs/RN')) {
+        return { ok: true, json: async () => ({ InformationList: { Information: [{ RN: ['64-17-5'] }] } }) };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          PC_Compounds: [
+            {
+              props: [
+                {
+                  urn: { label: 'Density' },
+                  value: { sval: '0.789' },
+                },
+              ],
+            },
+          ],
+        }),
+      };
     };
     const result = await annotateWithPubChem(
       [{ identifier: 'Ethanol', amount: { value: 5, unit: 'g' }, role: 'reagent' }],
