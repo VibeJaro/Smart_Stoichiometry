@@ -41,6 +41,7 @@ describe('annotateWithPubChem', () => {
     const result = await annotateWithPubChem([{ identifier: 'AcOH', amount: { value: 1, unit: 'g' } }]);
     assert.strictEqual(result[0].molarMass, 60.052);
     assert.strictEqual(result[0].status, 'resolved');
+    assert.strictEqual(result[0].density, 1.049);
   });
 
   it('surfaces PubChem data from API', async () => {
@@ -49,7 +50,11 @@ describe('annotateWithPubChem', () => {
         return {
           ok: true,
           json: async () => ({
-            PropertyTable: { Properties: [{ MolecularWeight: 46.07, IUPACName: 'ethanol', IsomericSMILES: 'CCO' }] },
+            PropertyTable: {
+              Properties: [
+                { MolecularWeight: 46.07, IUPACName: 'ethanol', IsomericSMILES: 'CCO', Density: '0.789' },
+              ],
+            },
           }),
         };
       }
@@ -62,5 +67,6 @@ describe('annotateWithPubChem', () => {
     assert.strictEqual(result[0].casNumber, '64-17-5');
     assert.strictEqual(result[0].molarMass, 46.07);
     assert.strictEqual(result[0].smiles, 'CCO');
+    assert.strictEqual(result[0].density, 0.789);
   });
 });

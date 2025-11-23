@@ -42,6 +42,7 @@ function renderResults(result) {
           <td>${r.canonicalName || r.identifier}</td>
           <td>${formatAmount(r.amount)}</td>
           <td>${formatNumber(r.molarMass, ' g/mol')}</td>
+          <td>${formatNumber(r.density, ' g/mL')}</td>
           <td>${formatNumber(r.moles, ' mol')}</td>
           <td>${formatNumber(r.equivalents)}</td>
           <td><span class="badge ${r.status !== 'resolved' ? 'status-unresolved' : ''}">${r.status || 'unbekannt'}</span></td>
@@ -67,7 +68,7 @@ function renderResults(result) {
       <table class="table" aria-label="Reagenzien Tabelle">
         <thead>
           <tr>
-            <th>Name</th><th>Menge</th><th>Molmasse</th><th>Stoffmenge</th><th>Äquivalente</th><th>Status</th>
+            <th>Name</th><th>Menge</th><th>Molmasse</th><th>Dichte</th><th>Stoffmenge</th><th>Äquivalente</th><th>Status</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
