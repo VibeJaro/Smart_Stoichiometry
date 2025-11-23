@@ -24,6 +24,13 @@ describe('extractChemicalsWithLLM', () => {
                     amount: { value: 2, unit: 'g' },
                     role: 'reagent',
                   },
+                  {
+                    name: 'Diethylether',
+                    casNumber: '60-29-7',
+                    smiles: 'CCOCC',
+                    amount: null,
+                    role: 'product',
+                  },
                 ],
               }),
             },
@@ -37,10 +44,11 @@ describe('extractChemicalsWithLLM', () => {
       fetchFn: fakeFetch,
     });
 
-    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result.length, 2);
     assert.strictEqual(result[0].casNumber, '64-17-5');
     assert.strictEqual(result[0].smiles, 'CCO');
     assert.strictEqual(result[0].amount.value, 2);
+    assert.strictEqual(result[1].role, 'product');
   });
 
   it('falls back to parsed input when the LLM call fails', async () => {
