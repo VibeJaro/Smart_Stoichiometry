@@ -46,6 +46,30 @@ describe('resolveChemical', () => {
     assert.strictEqual(result.compound.molarMass, 18.015);
   });
 
+  it('queries PubChem via RN xref when a CAS number is provided', async () => {
+    const seenUrls = [];
+    const fakeFetch = async (url) => {
+      seenUrls.push(url);
+      if (url.includes('/property/')) {
+        return {
+          ok: true,
+          json: async () => ({
+            PropertyTable: {
+              Properties: [{ MolecularWeight: 78.11, IUPACName: 'benzene', IsomericSMILES: 'c1ccccc1' }],
+            },
+          }),
+        };
+      }
+      return { ok: true, json: async () => ({ PC_Compounds: [{ props: [] }] }) };
+    };
+
+    const result = await resolveChemical('71-43-2', { fetchFn: fakeFetch });
+    assert.strictEqual(result.status, 'resolved');
+    assert.strictEqual(result.compound.casNumber, '71-43-2');
+    assert.ok(seenUrls.some((u) => u.includes('/xref/RN/71-43-2/property/')));
+    assert.ok(seenUrls.some((u) => u.includes('/xref/RN/71-43-2/JSON')));
+  });
+
   it('returns ambiguous suggestions', async () => {
     const result = await resolveChemical('acid');
     assert.strictEqual(result.status, 'ambiguous');
