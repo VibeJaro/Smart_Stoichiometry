@@ -16,13 +16,15 @@ module.exports = async (req, res) => {
     const steps = [`Eingabetext erhalten (${(body.text || '').length} Zeichen)`];
     const fallbackParsed = parseInput(body.text || '');
     steps.push(`Parser erkannte ${fallbackParsed.length} Einträge.`);
-    const llmParsed = await extractChemicalsWithLLM(body.text || '', { fallbackParsed });
+    const llmParsed = await extractChemicalsWithLLM(body.text || '', { fallbackParsed, steps });
     const parsed = llmParsed.length ? llmParsed : fallbackParsed;
     if (llmParsed.length) {
       steps.push('LLM-Extraktion lieferte Ergebnisse, diese werden genutzt.');
     } else {
       steps.push('LLM-Extraktion nicht verfügbar oder leer, nutze heuristischen Parser.');
     }
+    const usedList = parsed.map((p) => p.canonicalName || p.identifier || 'unbenannt').join(', ');
+    steps.push(`Verwendete Einträge für PubChem: ${usedList || 'keine Chemikalien erkannt'}.`);
     const enriched = await annotateWithPubChem(parsed, { fetchFn: global.fetch, steps });
     const stoich = computeStoichiometry(enriched);
     if (stoich.limitingReagent) {
