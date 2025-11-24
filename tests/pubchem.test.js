@@ -59,6 +59,7 @@ describe('annotateWithPubChem', () => {
     assert.strictEqual(result[0].molarMass, 60.052);
     assert.strictEqual(result[0].status, 'resolved');
     assert.strictEqual(result[0].density, 1.049);
+    assert.ok(result[0].boilingPointC > 100);
   });
 
   it('surfaces PubChem data from API', async () => {

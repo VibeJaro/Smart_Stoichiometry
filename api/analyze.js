@@ -13,11 +13,28 @@ module.exports = async (req, res) => {
 
   try {
     const body = await readJsonBody(req);
+    const steps = [`Eingabetext erhalten (${(body.text || '').length} Zeichen)`];
     const fallbackParsed = parseInput(body.text || '');
+    steps.push(`Parser erkannte ${fallbackParsed.length} Einträge.`);
     const llmParsed = await extractChemicalsWithLLM(body.text || '', { fallbackParsed });
     const parsed = llmParsed.length ? llmParsed : fallbackParsed;
-    const enriched = await annotateWithPubChem(parsed, { fetchFn: global.fetch });
+    if (llmParsed.length) {
+      steps.push('LLM-Extraktion lieferte Ergebnisse, diese werden genutzt.');
+    } else {
+      steps.push('LLM-Extraktion nicht verfügbar oder leer, nutze heuristischen Parser.');
+    }
+    const enriched = await annotateWithPubChem(parsed, { fetchFn: global.fetch, steps });
     const stoich = computeStoichiometry(enriched);
+    if (stoich.limitingReagent) {
+      steps.push(`Limiting reagent: ${stoich.limitingReagent.canonicalName}.`);
+    }
+    if (stoich.theoreticalYield) {
+      steps.push(
+        `Theoretische Ausbeute: ${stoich.theoreticalYield.massGrams.toFixed(3)} g für ${stoich.theoreticalYield.description}`
+      );
+    } else {
+      steps.push('Keine theoretische Ausbeute berechnet (kein Produkt oder fehlende Daten).');
+    }
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -26,6 +43,7 @@ module.exports = async (req, res) => {
         reagents: stoich.reagents,
         limitingReagent: stoich.limitingReagent,
         theoreticalYield: stoich.theoreticalYield,
+        steps,
         warnings: stoich.reagents
           .filter((r) => r.status !== 'resolved')
           .map((r) => `${r.identifier} konnte nicht eindeutig bestimmt werden`),

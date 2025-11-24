@@ -51,6 +51,20 @@ function renderResults(result) {
     )
     .join('');
 
+  const propertyRows = result.reagents
+    .map(
+      (r) => `
+        <tr>
+          <td>${r.canonicalName || r.identifier}</td>
+          <td>${formatNumber(r.density, ' g/mL')}</td>
+          <td>${formatNumber(r.boilingPointC, ' °C')}</td>
+          <td>${formatNumber(r.meltingPointC, ' °C')}</td>
+          <td>${r.solubility || '–'}</td>
+        </tr>
+      `
+    )
+    .join('');
+
   const limiting = result.limitingReagent
     ? `<div class="badge">Limiting reagent: ${result.limitingReagent.canonicalName}</div>`
     : '';
@@ -60,6 +74,10 @@ function renderResults(result) {
     : '';
 
   const jsonView = `<pre>${escapeHtml(JSON.stringify(result, null, 2))}</pre>`;
+
+  const steps = (result.steps || [])
+    .map((step) => `<li>${escapeHtml(step)}</li>`)
+    .join('');
 
   output.innerHTML = `
     ${warnings}
@@ -73,6 +91,19 @@ function renderResults(result) {
         </thead>
         <tbody>${rows}</tbody>
       </table>
+      <h4>Stoffdaten</h4>
+      <table class="table" aria-label="Stoffdaten Tabelle">
+        <thead>
+          <tr>
+            <th>Name</th><th>Dichte</th><th>Siedepunkt</th><th>Schmelzpunkt</th><th>Löslichkeit</th>
+          </tr>
+        </thead>
+        <tbody>${propertyRows}</tbody>
+      </table>
+      <details style="margin-top: 12px;">
+        <summary style="cursor:pointer; font-weight:600;">Verarbeitungs-Schritte</summary>
+        <ol style="margin-top:8px; padding-left:18px;">${steps}</ol>
+      </details>
       <h4>JSON Output</h4>
       ${jsonView}
     </div>
