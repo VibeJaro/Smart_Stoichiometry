@@ -8,10 +8,11 @@ Ein schlanker, vollständig statischer Prototyp für die AI-gestützte Extraktio
 - **PubChem-Mock** ordnet Reagenzien anhand eines lokalen Datensatzes zu und weist Molmassen zu.
 - **Stoichiometrie-Modul** berechnet Stoffmengen, Äquivalente, limiting reagent und eine einfache theoretische Ausbeute.
 - **Klares Feedback** bei Mehrdeutigkeiten oder fehlenden Treffern.
+- **PubChem-Debug** Formular für manuelle Abfragen (Name oder CAS) inklusive detaillierter Schritt- und URL-Anzeige.
 
 ## Projektstruktur
 ```
-├─ api/               # Vercel-Serverless-Function (POST /api/analyze)
+├─ api/               # Vercel-Serverless-Functions (POST /api/analyze, POST /api/pubchem-debug)
 ├─ lib/               # Kernlogik: Parser, PubChem-Mock, Stoichiometrie
 ├─ tests/             # Unit-Tests mit minimalem Node-Test-Harness
 ├─ index.html         # Statische UI mit einem Textfeld

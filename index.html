@@ -23,6 +23,21 @@
           </div>
         </form>
       </section>
+      <section class="card" aria-labelledby="pubchem-debug-heading">
+        <div style="display:flex; justify-content:space-between; gap:8px; align-items:center; flex-wrap:wrap;">
+          <h2 id="pubchem-debug-heading">PubChem Debug</h2>
+          <span class="badge">Manuelle Abfrage</span>
+        </div>
+        <p>Teste eine direkte PubChem-Abfrage (Name oder CAS) und sieh alle genutzten URLs und Schritte.</p>
+        <form id="pubchem-debug-form">
+          <label for="pubchem-debug-input" style="display:block; font-weight:600; margin-bottom:8px;">Identifier (Name oder CAS)</label>
+          <input id="pubchem-debug-input" name="pubchem-debug-input" type="text" placeholder="z. B. Benzol oder 71-43-2" required />
+          <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+            <button id="pubchem-debug-submit" type="submit">PubChem abfragen</button>
+          </div>
+        </form>
+        <div id="pubchem-debug-output" class="results" aria-live="polite" style="margin-top:12px;"></div>
+      </section>
       <section class="results" id="stoich-output" aria-live="polite"></section>
     </main>
     <script src="./app.js" type="module"></script>

@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { resolveChemical, annotateWithPubChem } = require('../lib/pubchem');
+const { resolveChemical, annotateWithPubChem, buildPubChemUrls, isCasNumber } = require('../lib/pubchem');
 
 describe('resolveChemical', () => {
   it('resolves by CAS number via fallback', async () => {
@@ -127,5 +127,21 @@ describe('annotateWithPubChem', () => {
     assert.strictEqual(result[0].molarMass, 46.07);
     assert.strictEqual(result[0].smiles, 'CCO');
     assert.strictEqual(result[0].density, 0.789);
+  });
+});
+
+describe('buildPubChemUrls', () => {
+  it('builds RN xref URLs for CAS numbers', () => {
+    const urls = buildPubChemUrls('71-43-2');
+    assert.ok(urls.propertyUrl.includes('/xref/RN/71-43-2/property/'));
+    assert.ok(urls.recordUrl.includes('/xref/RN/71-43-2/JSON'));
+    assert.strictEqual(isCasNumber('71-43-2'), true);
+  });
+
+  it('builds name-based URLs otherwise', () => {
+    const urls = buildPubChemUrls('benzene');
+    assert.ok(urls.propertyUrl.includes('/name/benzene/property/'));
+    assert.ok(urls.recordUrl.includes('/name/benzene/JSON'));
+    assert.strictEqual(isCasNumber('benzene'), false);
   });
 });

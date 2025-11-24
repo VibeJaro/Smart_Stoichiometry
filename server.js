@@ -2,11 +2,15 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const analyzeHandler = require('./api/analyze');
+const pubchemDebugHandler = require('./api/pubchem-debug');
 
 const port = process.env.PORT || 3000;
 const server = http.createServer(async (req, res) => {
   if (req.url === '/api/analyze') {
     return analyzeHandler(req, res);
+  }
+  if (req.url === '/api/pubchem-debug') {
+    return pubchemDebugHandler(req, res);
   }
   const filePath = mapFilePath(req.url);
   fs.readFile(filePath, (err, data) => {
