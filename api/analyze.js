@@ -16,8 +16,26 @@ module.exports = async (req, res) => {
     const fallbackParsed = parseInput(body.text || '');
     const llmParsed = await extractChemicalsWithLLM(body.text || '', { fallbackParsed });
     const parsed = llmParsed.length ? llmParsed : fallbackParsed;
-    const enriched = await annotateWithPubChem(parsed, { fetchFn: global.fetch });
-    const stoich = computeStoichiometry(enriched);
+    const { entries, trace } = await annotateWithPubChem(parsed, { fetchFn: global.fetch });
+    const stoich = computeStoichiometry(entries);
+
+    const steps = [
+      ...trace,
+      {
+        step: 'stoichiometry',
+        message: stoich.limitingReagent
+          ? `Limitierendes Reagenz: ${stoich.limitingReagent.canonicalName}`
+          : 'Kein limitierendes Reagenz identifiziert',
+      },
+    ];
+
+    if (stoich.theoreticalYield) {
+      steps.push({
+        step: 'yield',
+        message: `Theoretische Ausbeute: ${stoich.theoreticalYield.massGrams} g`,
+        details: stoich.theoreticalYield.description,
+      });
+    }
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -26,6 +44,7 @@ module.exports = async (req, res) => {
         reagents: stoich.reagents,
         limitingReagent: stoich.limitingReagent,
         theoreticalYield: stoich.theoreticalYield,
+        steps,
         warnings: stoich.reagents
           .filter((r) => r.status !== 'resolved')
           .map((r) => `${r.identifier} konnte nicht eindeutig bestimmt werden`),
