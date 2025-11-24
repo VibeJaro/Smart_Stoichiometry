@@ -42,10 +42,25 @@ function renderResults(result) {
           <td>${r.canonicalName || r.identifier}</td>
           <td>${formatAmount(r.amount)}</td>
           <td>${formatNumber(r.molarMass, ' g/mol')}</td>
-          <td>${formatNumber(r.density, ' g/mL')}</td>
+          <td>${formatDensity(r)}</td>
           <td>${formatNumber(r.moles, ' mol')}</td>
           <td>${formatNumber(r.equivalents)}</td>
           <td><span class="badge ${r.status !== 'resolved' ? 'status-unresolved' : ''}">${r.status || 'unbekannt'}</span></td>
+        </tr>
+      `
+    )
+    .join('');
+
+  const propertyRows = result.reagents
+    .map(
+      (r) => `
+        <tr>
+          <td>${r.canonicalName || r.identifier}</td>
+          <td>${r.casNumber || '–'}</td>
+          <td>${formatDensity(r)}</td>
+          <td>${formatMeasurement(r.boilingPoint, '°C')}</td>
+          <td>${formatMeasurement(r.meltingPoint, '°C')}</td>
+          <td>${formatMeasurement(r.solubility)}</td>
         </tr>
       `
     )
@@ -60,6 +75,7 @@ function renderResults(result) {
     : '';
 
   const jsonView = `<pre>${escapeHtml(JSON.stringify(result, null, 2))}</pre>`;
+  const stepList = renderSteps(result.steps || []);
 
   output.innerHTML = `
     ${warnings}
@@ -73,6 +89,17 @@ function renderResults(result) {
         </thead>
         <tbody>${rows}</tbody>
       </table>
+      <h4>Stoffdaten (PubChem)</h4>
+      <table class="table" aria-label="Stoffdaten Tabelle">
+        <thead>
+          <tr>
+            <th>Name</th><th>CAS</th><th>Dichte</th><th>Siedepunkt</th><th>Schmelzpunkt</th><th>Löslichkeit</th>
+          </tr>
+        </thead>
+        <tbody>${propertyRows}</tbody>
+      </table>
+      <h4>Prozessschritte</h4>
+      ${stepList}
       <h4>JSON Output</h4>
       ${jsonView}
     </div>
@@ -87,6 +114,39 @@ function formatAmount(amount) {
 function formatNumber(value, suffix = '') {
   if (typeof value !== 'number' || Number.isNaN(value)) return '–';
   return `${value.toFixed(3)}${suffix}`;
+}
+
+function formatDensity(reagent) {
+  if (typeof reagent?.density !== 'number' || Number.isNaN(reagent.density)) return '–';
+  const unit = reagent.densityUnit || 'g/mL';
+  return `${reagent.density.toFixed(3)} ${unit}`;
+}
+
+function formatMeasurement(measurement, fallbackUnit = '') {
+  if (!measurement) return '–';
+  if (typeof measurement === 'number') {
+    return `${measurement.toFixed(2)}${fallbackUnit ? ` ${fallbackUnit}` : ''}`;
+  }
+  if (typeof measurement.value === 'number') {
+    const unit = measurement.unit || fallbackUnit;
+    return `${measurement.value.toFixed(2)}${unit ? ` ${unit}` : ''}`;
+  }
+  return measurement.value || '–';
+}
+
+function renderSteps(steps) {
+  if (!steps.length) return '<div class="warning">Keine Prozessdetails vorhanden.</div>';
+  const items = steps
+    .map(
+      (step) => `
+        <li>
+          <strong>${step.step || 'Schritt'}:</strong> ${step.message || ''}
+          ${step.details ? `<pre>${escapeHtml(JSON.stringify(step.details, null, 2))}</pre>` : ''}
+        </li>
+      `
+    )
+    .join('');
+  return `<details open><summary>Schritte anzeigen</summary><ul>${items}</ul></details>`;
 }
 
 function escapeHtml(str) {

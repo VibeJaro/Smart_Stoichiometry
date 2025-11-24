@@ -55,10 +55,11 @@ describe('resolveChemical', () => {
 
 describe('annotateWithPubChem', () => {
   it('adds molar mass information', async () => {
-    const result = await annotateWithPubChem([{ identifier: 'AcOH', amount: { value: 1, unit: 'g' } }]);
-    assert.strictEqual(result[0].molarMass, 60.052);
-    assert.strictEqual(result[0].status, 'resolved');
-    assert.strictEqual(result[0].density, 1.049);
+    const { entries, trace } = await annotateWithPubChem([{ identifier: 'AcOH', amount: { value: 1, unit: 'g' } }]);
+    assert.strictEqual(entries[0].molarMass, 60.052);
+    assert.strictEqual(entries[0].status, 'resolved');
+    assert.strictEqual(entries[0].density, 1.049);
+    assert.ok(Array.isArray(trace));
   });
 
   it('surfaces PubChem data from API', async () => {
@@ -94,13 +95,13 @@ describe('annotateWithPubChem', () => {
         }),
       };
     };
-    const result = await annotateWithPubChem(
+    const { entries } = await annotateWithPubChem(
       [{ identifier: 'Ethanol', amount: { value: 5, unit: 'g' }, role: 'reagent' }],
       { fetchFn: fakeFetch }
     );
-    assert.strictEqual(result[0].casNumber, '64-17-5');
-    assert.strictEqual(result[0].molarMass, 46.07);
-    assert.strictEqual(result[0].smiles, 'CCO');
-    assert.strictEqual(result[0].density, 0.789);
+    assert.strictEqual(entries[0].casNumber, '64-17-5');
+    assert.strictEqual(entries[0].molarMass, 46.07);
+    assert.strictEqual(entries[0].smiles, 'CCO');
+    assert.strictEqual(entries[0].density, 0.789);
   });
 });
