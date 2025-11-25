@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { resolveChemical, annotateWithPubChem } = require('../lib/pubchem');
+const { resolveChemical, annotateWithPubChem, buildPubChemUrls, isCasNumber } = require('../lib/pubchem');
 
 describe('resolveChemical', () => {
   it('resolves by CAS number via fallback', async () => {
@@ -46,6 +46,30 @@ describe('resolveChemical', () => {
     assert.strictEqual(result.compound.molarMass, 18.015);
   });
 
+  it('queries PubChem via RN xref when a CAS number is provided', async () => {
+    const seenUrls = [];
+    const fakeFetch = async (url) => {
+      seenUrls.push(url);
+      if (url.includes('/property/')) {
+        return {
+          ok: true,
+          json: async () => ({
+            PropertyTable: {
+              Properties: [{ MolecularWeight: 78.11, IUPACName: 'benzene', IsomericSMILES: 'c1ccccc1' }],
+            },
+          }),
+        };
+      }
+      return { ok: true, json: async () => ({ PC_Compounds: [{ props: [] }] }) };
+    };
+
+    const result = await resolveChemical('71-43-2', { fetchFn: fakeFetch });
+    assert.strictEqual(result.status, 'resolved');
+    assert.strictEqual(result.compound.casNumber, '71-43-2');
+    assert.ok(seenUrls.some((u) => u.includes('/xref/RN/71-43-2/property/')));
+    assert.ok(seenUrls.some((u) => u.includes('/xref/RN/71-43-2/JSON')));
+  });
+
   it('returns ambiguous suggestions', async () => {
     const result = await resolveChemical('acid');
     assert.strictEqual(result.status, 'ambiguous');
@@ -59,6 +83,7 @@ describe('annotateWithPubChem', () => {
     assert.strictEqual(result[0].molarMass, 60.052);
     assert.strictEqual(result[0].status, 'resolved');
     assert.strictEqual(result[0].density, 1.049);
+    assert.ok(result[0].boilingPointC > 100);
   });
 
   it('surfaces PubChem data from API', async () => {
@@ -102,5 +127,21 @@ describe('annotateWithPubChem', () => {
     assert.strictEqual(result[0].molarMass, 46.07);
     assert.strictEqual(result[0].smiles, 'CCO');
     assert.strictEqual(result[0].density, 0.789);
+  });
+});
+
+describe('buildPubChemUrls', () => {
+  it('builds RN xref URLs for CAS numbers', () => {
+    const urls = buildPubChemUrls('71-43-2');
+    assert.ok(urls.propertyUrl.includes('/xref/RN/71-43-2/property/'));
+    assert.ok(urls.recordUrl.includes('/xref/RN/71-43-2/JSON'));
+    assert.strictEqual(isCasNumber('71-43-2'), true);
+  });
+
+  it('builds name-based URLs otherwise', () => {
+    const urls = buildPubChemUrls('benzene');
+    assert.ok(urls.propertyUrl.includes('/name/benzene/property/'));
+    assert.ok(urls.recordUrl.includes('/name/benzene/JSON'));
+    assert.strictEqual(isCasNumber('benzene'), false);
   });
 });
